@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import time
 import glob
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -92,6 +93,22 @@ def setup_gemini():
         tools=tools
     )
 
+def send_message_with_retry(chat, prompt, max_retries=5):
+    """Sends a message to Gemini with exponential backoff for rate limits."""
+    delay = 2
+    for attempt in range(max_retries):
+        try:
+            return chat.send_message(prompt)
+        except Exception as e:
+            error_str = str(e)
+            if "429" in error_str or "quota" in error_str.lower():
+                print(f"⚠️ Rate limit hit. Retrying in {delay}s... (Attempt {attempt + 1}/{max_retries})")
+                time.sleep(delay)
+                delay *= 2  # Exponential backoff
+            else:
+                raise e
+    raise Exception("Max retries exceeded for rate limit.")
+
 def main():
     print("🌙 Night Shift Agent Initializing...")
     model = setup_gemini()
@@ -146,8 +163,8 @@ def main():
                 """
                 
                 try:
-                    # The chat session handles the tool loop automatically with enable_automatic_function_calling=True
-                    response = chat.send_message(prompt)
+                    # Use the retry wrapper
+                    response = send_message_with_retry(chat, prompt)
                     print(f"\n🧠 Agent Report:\n{response.text}")
                     
                     # Mark task as done if successful (assuming no exception)
