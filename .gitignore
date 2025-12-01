@@ -32,6 +32,4 @@ env/
 
 # Agent
 tasks.txt
-agent_gemini.py
-requirements.txt
 .gemini/
