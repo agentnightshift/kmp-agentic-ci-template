@@ -60,16 +60,28 @@ fun VirtualCardScreen() {
             cardHolder = state.cardHolder,
             expiry = state.expiry,
             cvv = state.cvv,
-            isLoading = state.isLoading
+            isLoading = state.isLoading,
+            isLocked = state.isLocked
         )
         
         Spacer(modifier = Modifier.height(32.dp))
         
         Button(
             onClick = { store.dispatch(VirtualCardIntent.ToggleVisibility) },
-            modifier = Modifier.testTag("RevealButton")
+            modifier = Modifier.testTag("RevealButton"),
+            enabled = !state.isLocked && !state.isLoading
         ) {
             Text(state.buttonText)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { store.dispatch(VirtualCardIntent.ToggleLock) },
+            modifier = Modifier.testTag("LockCardButton"),
+            enabled = !state.isLoading
+        ) {
+            Text(if (state.isLocked) "Unlock Card" else "Lock Card")
         }
     }
 }
@@ -80,7 +92,8 @@ fun VirtualCard(
     cardHolder: String,
     expiry: String,
     cvv: String,
-    isLoading: Boolean
+    isLoading: Boolean,
+    isLocked: Boolean
 ) {
     Card(
         modifier = Modifier
@@ -113,6 +126,18 @@ fun VirtualCard(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.semantics { contentDescription = "Loading" })
+                }
+            } else if (isLocked) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "CARD LOCKED",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             } else {
                 Column(
