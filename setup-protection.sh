@@ -52,17 +52,23 @@ gh api \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
   "/repos/$REPO/branches/main/protection" \
-  -f "required_status_checks[strict]=true" \
-  -f "required_status_checks[contexts][]=quality_gate" \
-  -f "required_status_checks[contexts][]=ui_verification" \
-  -f "enforce_admins=false" \
-  -f "required_pull_request_reviews[dismiss_stale_reviews]=true" \
-  -f "required_pull_request_reviews[require_code_owner_reviews]=false" \
-  -F "required_pull_request_reviews[required_approving_review_count]=1" \
-  -f "restrictions=null" \
-  -f "allow_force_pushes=false" \
-  -f "allow_deletions=false" \
-  --silent
+  --input - <<EOF
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": ["quality_gate", "ui_verification"]
+  },
+  "enforce_admins": false,
+  "required_pull_request_reviews": {
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": false,
+    "required_approving_review_count": 1
+  },
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}
+EOF
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Branch protection configured successfully!${NC}"
