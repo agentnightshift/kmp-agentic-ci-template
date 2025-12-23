@@ -33,3 +33,4 @@ env/
 # Agent
 tasks.txt
 .gemini/
+.agent_logs/
